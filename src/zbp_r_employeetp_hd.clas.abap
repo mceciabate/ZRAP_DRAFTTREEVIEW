@@ -1,0 +1,5 @@
+CLASS zbp_r_employeetp_hd DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zr_agencytp_hd.
+ENDCLASS.
+
+CLASS zbp_r_employeetp_hd IMPLEMENTATION.
+ENDCLASS.

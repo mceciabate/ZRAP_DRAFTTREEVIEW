@@ -1,0 +1,109 @@
+managed implementation in class zbp_r_agencytp_hd unique;
+strict ( 2 );
+with draft;
+
+define behavior for ZR_AgencyTP_HD alias Agency
+persistent table zagency_a_hd
+draft table zagency_a_hd_d
+etag master LocalLastChangedAt
+lock master total etag LastChangedAt
+authorization master ( global )
+{
+  create ( authorization : global );
+  update;
+  delete;
+
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare;
+
+  field ( readonly ) Agency;
+  association _Employee { create; with draft; }
+
+  mapping for zagency_a_hd
+    {
+      Agency             = agency_id;
+      Name               = name;
+      Street             = street;
+      PostalCode         = postal_code;
+      City               = city;
+      CountryCode        = country_code;
+      PhoneNumber        = phone_number;
+      EMailAddress       = email_address;
+      WebAddress         = web_address;
+      LocalCreatedBy     = local_created_by;
+      LocalCreatedAt     = local_created_at;
+      LocalLastChangedAt = local_last_changed_at;
+      LocalLastChangedBy = local_last_changed_by;
+      LastChangedAt      = last_changed_at;
+    }
+
+}
+
+define behavior for ZR_EmployeeTP_HD alias Employee
+implementation in class zbp_r_employeetp_hd unique
+early numbering
+persistent table zemploy_a_hd
+draft table zemploy_a_hd_d
+lock dependent by _Agency
+authorization dependent by _Agency
+etag master LocalLastChangedAt
+{
+  update;
+  delete;
+
+  field ( readonly ) Agency, Employee, SiblingOrderNumber;
+  field ( readonly ) Manager;
+
+  association _Agency { with draft; }
+  association _Manager
+  {
+    with draft;
+    link action linkManager; //Declare a link and unlink action to enable the reassignments of child nodes to parent nodes.
+    unlink action unlinkManager;
+  }
+
+  association _Employee { with draft; }
+
+  instance hierarchy ZI_EmployeeHN_HD
+  {
+    managed reorder action changeNextSibling; //To enable moving a hierarchy node to a dedicated position among its siblings on the UI, you must declare a reorder action
+    field ( hierarchy-index ) SiblingOrderNumber; //For the managed reorder action, you must declare a SiblingOrderNumber. Pay attention that it must be a single field in the value of either INT or NUMC.
+    ascending association _Manager; //for the managed reorder action, you must also declare an ascending association, which is the hierarchy-to-parent association
+    descending association _Employee { with cascading delete; } //and a corresponding reverse association as a descending association.
+  }
+
+  validation validationSalaryPositive on save { create; field Salary; }
+  validation validationCurrencyExists on save { create; field SalaryCurrency; }
+  validation validationNameGiven on save { create; field FirstName, LastName; }
+
+  determine action validateSalaryPositive { validation validationSalaryPositive; }
+  determine action validateCurrencyExists { validation validationCurrencyExists; }
+  determine action validateNameGiven { validation validationNameGiven; }
+
+  side effects
+  {
+    determine action validateSalaryPositive executed on field Salary affects messages;
+    determine action validateCurrencyExists executed on field SalaryCurrency affects messages;
+    determine action validateNameGiven executed on field FirstName, field LastName affects messages;
+  }
+
+  mapping for zemploy_a_hd
+    {
+      Agency             = agency;
+      Employee           = employee;
+      FirstName          = first_name;
+      LastName           = last_name;
+      Salary             = salary;
+      SalaryCurrency     = salary_currency;
+      Manager            = manager;
+      SiblingOrderNumber = sibling_order_number;
+      LocalCreatedBy     = local_created_by;
+      LocalCreatedAt     = local_created_at;
+      LocalLastChangedBy = local_last_changed_by;
+      LocalLastChangedAt = local_last_changed_at;
+    }
+
+}

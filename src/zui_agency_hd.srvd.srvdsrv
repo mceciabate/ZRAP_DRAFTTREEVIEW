@@ -1,0 +1,7 @@
+@EndUserText.label: 'Service Def for Hierarchy'
+@ObjectModel.leadingEntity.name: 'ZC_AgencyTP_HD'
+define service ZUI_AGENCY_HD {
+  expose ZC_AGENCYTP_HD   as Agency;
+  expose ZC_EMPLOYEETP_HD as Employee;
+  expose I_CurrencyStdVH  as Currency;
+}
